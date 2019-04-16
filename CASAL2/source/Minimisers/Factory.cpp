@@ -16,6 +16,7 @@
 #include "Model/Model.h"
 #include "Model/Managers.h"
 #include "Minimisers/Manager.h"
+#include "Minimisers/Common/StanBFGS.h"
 
 #ifdef USE_AUTODIFF
 #ifdef USE_ADOLC
@@ -52,6 +53,11 @@ Minimiser* Factory::Create(Model* model, const string& object_type, const string
   Minimiser* result = nullptr;
 
   if (object_type == PARAM_MINIMIZER) {
+
+    if (sub_type == PARAM_STAN_BFGS) {
+      result = new StanBFGS(model);
+    }
+
 #ifdef USE_AUTODIFF
 #ifdef USE_BETADIFF
     if (sub_type == PARAM_BETADIFF) {

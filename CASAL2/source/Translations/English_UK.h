@@ -578,6 +578,7 @@
 #define PARAM_START                               "start"
 #define PARAM_START_YEAR                          "start_year"
 #define PARAM_STATE                               "state"
+#define PARAM_STAN_BFGS                           "stan_bfgs"
 #define PARAM_SQUARE_ROOT                         "sqrt"
 #define PARAM_SQUARE_UNIFORM                      "square_uniform"
 #define PARAM_SSB                                 "ssb"
