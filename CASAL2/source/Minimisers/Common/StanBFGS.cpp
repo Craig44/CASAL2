@@ -25,13 +25,16 @@
 #include <stan/optimization/bfgs.hpp>
 #include <stan/io/empty_var_context.hpp>
 
-#include <test/unit/services/instrumented_callbacks.hpp>
-
+//#include <test/unit/services/instrumented_callbacks.hpp>
+#include <stan/callbacks/interrupt.hpp>
+#include <stan/callbacks/logger.hpp>
+#include <stan/callbacks/writer.hpp>//
 
 
 // namespaces
 namespace niwa {
 namespace minimisers {
+using namespace niwa::minimisers::stanbfgs;
 
 /**
  * Default constructor
@@ -51,7 +54,10 @@ void StanBFGS::Execute() {
   // Variables
   // stan::io::empty_var_context context;
   unsigned random_seed = model_->global_configuration().random_seed();
-  stanbfgs::CallBack  call_back(model_);
+  estimates::Manager* estimate_manager = model_->managers().estimate();
+  CallBack  call_back(model_);
+  LOG_FINE() << "build Stan Call back";
+
   vector<double>  start_values;
   vector<int> params_i(0);
   vector<double> gradient;
@@ -66,10 +72,10 @@ void StanBFGS::Execute() {
   }
 
   // Calculate gradient
-  double log_p_grad = stan::model::log_prob_grad<false, true, stanbfgs::CallBack>(call_back, start_values, params_i,gradient, msgs);
+  double log_p_grad = stan::model::log_prob_grad<false, true, CallBack>(call_back, start_values, params_i,gradient, msgs);
 
 
-
+  LOG_FINE() << "Finished DoExecute";
 
 
 
