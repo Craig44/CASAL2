@@ -44,6 +44,9 @@ CallBack::CallBack(Model* model) : model_(model) {
 template<bool propto__, bool jacobian__, typename T__>
 T__ CallBack::log_prob(vector<T__>& params_r__, vector<int>& params_i__, std::ostream* pstream__) const {
   // Update our Components with the New Parameters
+
+  stan::math::accumulator<T__> lp_accum__; //
+
   vector<Estimate*> estimates = model_->managers().estimate()->GetIsEstimated();
 
   if (params_r__.size() != estimates.size()) {
@@ -60,21 +63,24 @@ T__ CallBack::log_prob(vector<T__>& params_r__, vector<int>& params_i__, std::os
   objective.CalculateScore();
 
   model_->managers().estimate_transformation()->TransformEstimates();
-  T__ loglike = -objective.score();
-  return loglike;// Casal2 works with Negative log-likelihood Stan works with log-likelihood space
+  lp_accum__.add(-objective.score());
+
+
+  return lp_accum__.sum();// Casal2 works with Negative log-likelihood Stan works with log-likelihood space
 }
 
+/*
 // Overload the above function for eigen style parameters.
 template <bool propto, bool jacobian, typename T_>
 T_ CallBack::log_prob(Eigen::Matrix<T_,Eigen::Dynamic,1>& params_r, std::ostream* pstream) const {
   std::vector<T_> vec_params_r;
   vec_params_r.reserve(params_r.size());
   for (int i = 0; i < params_r.size(); ++i)
-  vec_params_r.push_back(params_r(i));
+    vec_params_r.push_back(params_r(i));
   std::vector<int> vec_params_i;
   return log_prob<propto,jacobian,T_>(vec_params_r, vec_params_i, pstream);
 }
-
+*/
 
 
 /*

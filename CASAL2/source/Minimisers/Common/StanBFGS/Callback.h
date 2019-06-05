@@ -41,9 +41,11 @@ public:
   virtual                     ~CallBack() = default;
 
   template<bool propto__, bool jacobian__, typename T__>
-  T__                       log_prob(vector<T__>& params_r__, vector<int>& params_i__, std::ostream* pstream__) const ;
-  template <bool propto, bool jacobian, typename T_>
-  T_                        log_prob(Eigen::Matrix<T_,Eigen::Dynamic,1>& params_r, std::ostream* pstream) const;
+  T__                       log_prob(vector<T__>& params_r__, vector<int>& params_i__, std::ostream* pstream__ = 0) const ;
+
+
+  //template <bool propto, bool jacobian, typename T_>
+  //T_                        log_prob(Eigen::Matrix<T_,Eigen::Dynamic,1>& params_r, std::ostream* pstream) const;
   void                      transform_inits(const stan::io::var_context& context__, std::vector<int>& params_i__, std::vector<double>& params_r__, std::ostream* pstream__) const ;
   void                      transform_inits(const stan::io::var_context& context, Eigen::Matrix<double,Eigen::Dynamic,1>& params_r, std::ostream* pstream__) const;
 

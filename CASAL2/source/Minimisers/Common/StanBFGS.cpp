@@ -19,11 +19,11 @@
 #include "GlobalConfiguration/GlobalConfiguration.h"
 
 // Stan headers
-
 #include <stan/model/model_header.hpp>
 #include <stan/model/finite_diff_grad.hpp>
 #include <stan/optimization/bfgs.hpp>
 #include <stan/io/empty_var_context.hpp>
+#include <stan/math.hpp>
 
 //#include <test/unit/services/instrumented_callbacks.hpp>
 #include <stan/callbacks/interrupt.hpp>
@@ -34,7 +34,7 @@
 // namespaces
 namespace niwa {
 namespace minimisers {
-using namespace niwa::minimisers::stanbfgs;
+//using namespace niwa::minimisers::stanbfgs;
 
 /**
  * Default constructor
@@ -55,12 +55,18 @@ void StanBFGS::Execute() {
   // stan::io::empty_var_context context;
   unsigned random_seed = model_->global_configuration().random_seed();
   estimates::Manager* estimate_manager = model_->managers().estimate();
-  CallBack  call_back(model_);
+  stanbfgs::CallBack  cas_call_back(model_);
   LOG_FINE() << "build Stan Call back";
 
-  vector<double>  start_values;
-  vector<int> params_i(0);
-  vector<double> gradient;
+  LOG_FINE() << "log normal(1 | 2, 3)=" << stan::math::normal_log(1, 2, 3);
+  // This confirms we have access to Stan functionality
+
+
+  LOG_FINE() << "callback model_name = " << cas_call_back.model_name();
+
+  std::vector<double>  start_values;
+  std::vector<int> params_i;
+  std::vector<double> gradient;
   std::ostream* msgs = 0;
   // Transform to unconstrained space
   model_->managers().estimate_transformation()->TransformEstimates();
@@ -71,8 +77,10 @@ void StanBFGS::Execute() {
     start_values.push_back((double)estimate->value());
   }
 
+  double log_p = cas_call_back.log_prob<true, false, double>(start_values, params_i, msgs);
+  LOG_FINE() << "log_p = " << log_p;
   // Calculate gradient
-  double log_p_grad = stan::model::log_prob_grad<false, true, CallBack>(call_back, start_values, params_i,gradient, msgs);
+  //double log_p_grad = stan::model::log_prob_grad<false, true, CallBack>(call_back, start_values, params_i,gradient, msgs);
 
 
   LOG_FINE() << "Finished DoExecute";

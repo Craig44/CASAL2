@@ -21,6 +21,8 @@
 namespace niwa {
 namespace minimisers {
 
+using std::vector;
+
 //**********************************************************************
 //
 //
