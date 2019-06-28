@@ -23,6 +23,7 @@
 #include "EstimateTransformations/Common/SquareRoot.h"
 #include "EstimateTransformations/Common/SumToOne.h"
 #include "EstimateTransformations/Common/Simplex.h"
+#include "EstimateTransformations/Common/UnConstrained.h"
 // namespaces
 namespace niwa {
 namespace estimatetransformations {
@@ -55,7 +56,8 @@ EstimateTransformation* Factory::Create(Model* model, const string& object_type,
       result = new AverageDifference(model);
     else if (sub_type == PARAM_SUM_TO_ONE)
       result = new SumToOne(model);
-
+    else if (sub_type == PARAM_UNCONSTRAINED)
+      result = new UnConstrained(model);
     if (result)
       model->managers().estimate_transformation()->AddObject(result);
   }

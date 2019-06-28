@@ -9,7 +9,7 @@
  *
  * @section DESCRIPTION
  *
- * << Add Description >>
+ * This takes a parameter and
  */
 #ifndef SOURCE_ESTIMATETRANSFORMATIONS_CHILDREN_LOG_H_
 #define SOURCE_ESTIMATETRANSFORMATIONS_CHILDREN_LOG_H_

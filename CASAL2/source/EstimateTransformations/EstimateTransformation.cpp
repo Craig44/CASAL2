@@ -43,7 +43,8 @@ void EstimateTransformation::Validate() {
  * Build relationships
  */
 void EstimateTransformation::Build() {
- DoBuild();
+  LOG_FINE();
+  DoBuild();
 }
 
 /**
@@ -51,26 +52,16 @@ void EstimateTransformation::Build() {
  * ok.
  */
 void EstimateTransformation::Transform() {
-  LOG_TRACE();
-  if (!is_transformed_) {
-    DoTransform();
-    is_transformed_ = true;
-  } else {
-    LOG_FINE() << "The transformation " << label() << " is already transformed. Skipping transform";
-  }
+  LOG_FINE();
+  DoTransform();
 }
 
 /**
  * This method will check to ensure we're currently transformed, then restore
  */
 void EstimateTransformation::Restore() {
-  LOG_TRACE();
-  if (is_transformed_) {
-    DoRestore();
-    is_transformed_ = false;
-  } else {
-    LOG_FINE() << "The transformation " << label() << " is not transformed. Skipping restore";
-  }
+  LOG_FINE();
+  DoRestore();
 }
 
 }

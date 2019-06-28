@@ -2,11 +2,11 @@
 #############
 ## Estimation
 #############
-@minimiser betadiff
-type betadiff
-evaluations 4000
-iterations 1000
-tolerance 0.0002
+@minimiser stan
+type stan_bfgs
+#evaluations 4000
+#iterations 1000
+#tolerance 0.0002
 
 ################
 ## MCMC

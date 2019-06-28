@@ -423,6 +423,12 @@ void Model::RunBasic() {
   // Create an instance of all categories
   niwa::partition::accessors::All all_view(this);
 
+  // for testing purposes of Stan delete later on
+  auto minimiser = managers_->minimiser()->active_minimiser();
+  if (minimiser == nullptr)
+    LOG_CODE_ERROR() << "if (minimiser == nullptr)";
+  minimiser->Execute();
+
   // Model is about to run
   for (unsigned i = 0; i < adressable_values_count_; ++i) {
     if (addressable_values_file_) {

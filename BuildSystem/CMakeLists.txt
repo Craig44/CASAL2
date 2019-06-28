@@ -13,7 +13,8 @@ STRING(REPLACE "BuildSystem" "CASAL2" PROJECT_HOME_DIRECTORY ${CMAKE_HOME_DIRECT
 IF (DEBUG)
  SET(COMPILE_OPTIONS "-O0 -g3 -Wall -Werror -fmessage-length=0 -Wno-unused-local-typedefs")
 ELSEIF (RELEASE)
- SET(COMPILE_OPTIONS "-O2 -g0 -Wall -Werror -fmessage-length=0 -Wno-unused-local-typedefs")
+ #SET(COMPILE_OPTIONS "-O2 -g0 -Wall -Werror -fmessage-length=0 -Wno-unused-local-typedefs")
+ SET(COMPILE_OPTIONS "-O0 -g -Wall -c -fmessage-length=0")
 ELSEIF (TEST)
  SET(COMPILE_OPTIONS "-DTESTMODE -O2 -g0 -Wall -Werror -fmessage-length=0 -Wno-unused-local-typedefs")
 ELSE()
@@ -23,10 +24,10 @@ ENDIF ()
 # Set variables based on OS
 IF (WIN32)
  ## WINDOWS BUILD VARIABLES AND LIBRARIES
- SET(buildOS windows) 
- SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -D__GNUDOS__ -std=c++11")
+ SET(buildOS windows)
+ SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -D__GNUDOS__ -std=c++1y")
  SET(thirdPartyLibraries ${thirdPartyLibraries} pthread)
- 
+
 ELSE (WIN32)
  ## LINUX BUILD VARIABLES AND LIBRARIES
  SET(buildOS linux)
@@ -38,6 +39,14 @@ ENDIF ()
 IF (ADOLC)
  SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -DUSE_AUTODIFF -DUSE_ADOLC")
  SET(specialLibraries "-l:libadolc.a")
+ELSEIF(STAN)
+ SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -DUSE_AUTODIFF -DUSE_STAN")
+ SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -I${CMAKE_HOME_DIRECTORY}/bin/${buildOS}/thirdparty/include/stan_math")
+ SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -I${CMAKE_HOME_DIRECTORY}/bin/${buildOS}/thirdparty/include/stan/src")
+ SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -I${CMAKE_HOME_DIRECTORY}/bin/${buildOS}/thirdparty/include/stan_math/lib/boost_1.66.0")
+ SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -I${CMAKE_HOME_DIRECTORY}/bin/${buildOS}/thirdparty/include/stan_math/lib/eigen_3.3.3")
+ SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -I${CMAKE_HOME_DIRECTORY}/bin/${buildOS}/thirdparty/include/stan_math/lib/sundials_3.1.0/include")
+
 ELSEIF(BETADIFF)
  SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -DUSE_AUTODIFF -DUSE_BETADIFF")
  SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -Wno-unused-local-typedefs -Wno-write-strings -Wno-unused-variable -Wno-unused-but-set-variable -fpermissive -Wno-error")
@@ -45,34 +54,34 @@ ELSEIF(BETADIFF)
  SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -iquote${CMAKE_HOME_DIRECTORY}/bin/${buildOS}/thirdparty/include/ADOLC18/SRC/DRIVERS")
  SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -iquote${CMAKE_HOME_DIRECTORY}/bin/${buildOS}/thirdparty/include/ADOLC18/SRC/SPARSE")
  SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -iquote${CMAKE_HOME_DIRECTORY}/bin/${buildOS}/thirdparty/include/ADOLC18/SRC/TAPEDOC")
- SET(specialLibraries "-l:libbetadiff.a") 
+ SET(specialLibraries "-l:libbetadiff.a")
 ELSEIF(CPPAD)
  SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -DUSE_AUTODIFF -DUSE_CPPAD")
  IF (WIN32)
   SET(specialLibraries
-   "ipopt"   
+   "ipopt"
    "coinmumps"
    "coinmetis"
    "m"
-   "gfortran"   
+   "gfortran"
    "quadmath"
-   "msvcrt"   
+   "msvcrt"
    "coinlapack"
-   "coinblas"   
+   "coinblas"
   )
  ELSE (WIN32)
-  SET(specialLibraries   
+  SET(specialLibraries
    "quadmath"
    "dl"
    "ipopt"
    "coinmumps"
    "coinlapack"
-   "coinblas"   
+   "coinblas"
    "coinmetis"
    "m"
-   "gfortran"   
+   "gfortran"
    "dl"
-  ) 
+  )
  ENDIF ()
 ENDIF ()
 
@@ -127,7 +136,7 @@ ELSE(LIBRARY)
   	  MESSAGE("Building ICON")
   	  ADD_CUSTOM_TARGET(icon ALL COMMAND windres --output "${CMAKE_HOME_DIRECTORY}/icon.o" --input "${CMAKE_HOME_DIRECTORY}/casal2.rc")
   	  MESSAGE("Icon Built")
-  	  SET(LINK_OPTIONS "-static-libgcc -static-libstdc++ -static ${CMAKE_HOME_DIRECTORY}/icon.o")  
+  	  SET(LINK_OPTIONS "-static-libgcc -static-libstdc++ -static ${CMAKE_HOME_DIRECTORY}/icon.o")
   	ENDIF(WIN32)
   ENDIF()
   MESSAGE("Link Options: ${LINK_OPTIONS}")

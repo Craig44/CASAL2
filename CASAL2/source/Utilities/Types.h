@@ -48,6 +48,12 @@ adub tanh(const badouble&);
 #include <ADOLC18/SRC/adolc.h>
 #endif
 
+
+#ifdef USE_STAN
+#include <stan/model/model_header.hpp>
+#include <stan/math.hpp>
+#endif
+
 #ifdef USE_CPPAD
 # include <cppad/cppad.hpp>
 #include <cppad/ipopt/solve.hpp>
@@ -73,6 +79,11 @@ typedef adouble Double;
 #ifdef USE_CPPAD
 typedef CppAD::AD<double> Double;
 #define AS_DOUBLE(x) x.getValue()
+#endif
+
+#ifdef USE_STAN
+typedef stan::math::var Double;
+#define AS_DOUBLE(x) stan::math::value_of(x)
 #endif
 
 #ifndef USE_AUTODIFF

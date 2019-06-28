@@ -21,7 +21,7 @@ from DebBuilder import *
 """
 Print the usage for this build system
 """
-def print_usage():  
+def print_usage():
   os.system( [ 'clear', 'cls' ][ os.name == 'nt' ] )
   print '###########################################################'
   print '# CASAL2 Build System Usage                               #'
@@ -57,12 +57,13 @@ def print_usage():
   print '  adolc - Use ADOLC auto-differentiation in compiled executable'
   print '  betadiff - Use BetaDiff auto-differentiation (from CASAL)'
   print '  cppad - Use CppAD auto-differentiation'
+  print '  stan - Use stan auto-differentiation'
   print ''
   print 'Valid Build parameters: (library only)'
   print '  adolc - Build ADOLC auto-differentiation library'
   print '  betadiff - Build BetaDiff auto-differentiation library (from CASAL)'
   print '  cppad - Build CppAD auto-differentiation library'
-  print '  test - Build Unit Tests library'  
+  print '  test - Build Unit Tests library'
   print '  release - Build release library'
   print ''
   return True
@@ -84,11 +85,11 @@ def start_build_system():
     Globals.compiler_path_ = system_info.find_exe_path('g++')
     Globals.gfortran_path_ = system_info.find_exe_path('gfortran')
     Globals.latex_path_    = system_info.find_exe_path('bibtex')
-    Globals.git_path_      = system_info.find_exe_path('git')    
+    Globals.git_path_      = system_info.find_exe_path('git')
     if system_info.find_exe_path('unzip') == '':
       return Globals.PrintError('unzip is not in the current path. Please ensure it has been installed')
     if system_info.find_exe_path('cmake') == '':
-      return Globals.PrintError('cmake is not in the current path. Please ensure it has been intalled')    
+      return Globals.PrintError('cmake is not in the current path. Please ensure it has been intalled')
   system_info.set_new_path()
 
   if Globals.compiler_path_ == "":
@@ -96,9 +97,9 @@ def start_build_system():
   if Globals.gfortran_path_ == "":
     return Globals.PrintError("gfortran for g++ is not installed. Please install the GCC Fortran compiler")
   if Globals.git_path_ == "":
-    return Globals.PrintError("git is not in the current path. Please install a git command line client (e.g http://git-scm.com/downloads)")  
+    return Globals.PrintError("git is not in the current path. Please install a git command line client (e.g http://git-scm.com/downloads)")
   if Globals.operating_system_ == 'windows' and os.path.exists(Globals.git_path_ + '\\sh.exe'):
-  	return Globals.PrintError("git version has sh.exe in the same location. This will conflict with cmake. Please upgrade to a 64bit version of Git")    
+  	return Globals.PrintError("git version has sh.exe in the same location. This will conflict with cmake. Please upgrade to a 64bit version of Git")
   if not system_info.find_gcc_version():
     return False
 
@@ -108,7 +109,7 @@ def start_build_system():
   if gcc_version < '48':
     return Globals.PrintError("G++ version " + Globals.compiler_version_ + " is not supported due to its age")
 
-  return True  
+  return True
 
 """
 Get the build information from the user
@@ -126,45 +127,45 @@ def start():
   print '-- Checking for distutils Python module'
   if 'distutils' not in sys.modules:
     return Globals.PrintError("Python requires the module distutils for the build system to work")
-  
+
   build_target = ""
   build_parameters = ""
-  
+
   """
   Handle build information already passed in
   """
   if len(sys.argv) > 1 and len(str(sys.argv[1])) > 1:
       build_target = sys.argv[1]
   if len(sys.argv) > 2 and len(str(sys.argv[2])) > 1:
-      build_parameters = sys.argv[2] 
+      build_parameters = sys.argv[2]
 
   if build_target == "":
     return Globals.PrintError('Please provide a valid build target. Use doBuild help to see list');
   if not build_target.lower() in Globals.allowed_build_targets_:
     return Globals.PrintError(build_target + " is not a valid build target")
-    
-  build_target = build_target.lower()    
+
+  build_target = build_target.lower()
   if build_target == "help":
     print_usage()
     return True
   if build_target == "check":
 	print "--> All checks completed successfully"
-	return True 
+	return True
 
-  if build_parameters != "": 
+  if build_parameters != "":
     build_parameters = build_parameters.lower()
-  
+
   Globals.build_target_ = build_target
   Globals.build_parameters_ = build_parameters
-  
+
   print " -- Build target: " + Globals.build_target_
   print " -- Build parameters: " + Globals.build_parameters_
   print ""
-  
-  if build_target in Globals.allowed_build_types_:      
+
+  if build_target in Globals.allowed_build_types_:
     if not build_parameters in Globals.allowed_build_parameters_:
       return Globals.PrintError("Build parameter " + build_parameters + " is not valid")
-    
+
     print "*************************************************************************"
     print "*************************************************************************"
     print "--> Starting " + Globals.build_target_ + " Build"
@@ -181,12 +182,12 @@ def start():
     if not code_builder.start(True):
       return False
   elif build_target == "frontend":
-    print "*************************************************************************" 
+    print "*************************************************************************"
     print "*************************************************************************"
     print "--> Starting " + Globals.build_target_ + " Build"
     code_builder = FrontEnd()
     if not code_builder.start():
-      return False      
+      return False
   elif build_target == "archive":
     print "*************************************************************************"
     print "*************************************************************************"
@@ -232,16 +233,16 @@ def start():
   elif build_target == "rlibrary":
     print "*************************************************************************"
     print "*************************************************************************"
-    print "--> Starting " + Globals.build_target_ + " Build"   
-    r_path = '' 
+    print "--> Starting " + Globals.build_target_ + " Build"
+    r_path = ''
     if Globals.operating_system_ == 'windows':
       print "find windows R"
-      r_path = system_info.find_exe_path('R.exe') 
+      r_path = system_info.find_exe_path('R.exe')
     else:
-      r_path = system_info.find_exe_path('R')  
-    print "R path = " + r_path  
+      r_path = system_info.find_exe_path('R')
+    print "R path = " + r_path
     if r_path == '':
-      return Globals.PrintError("R is not in the current path please add R to your path.")  
+      return Globals.PrintError("R is not in the current path please add R to your path.")
     rlibrary = Rlibrary()
     if not rlibrary.start():
       return False
@@ -256,15 +257,15 @@ def start():
   elif build_target == "deb":
     print "*************************************************************************"
     print "*************************************************************************"
-    print "--> Building CASAL2 .deb Installer"    
+    print "--> Building CASAL2 .deb Installer"
     if Globals.operating_system_ == 'windows':
       return Globals.PrintError('Building linux .deb under Windows is not supported')
     deb_builder = DebBuilder()
     if not deb_builder.start(build_parameters):
-      return False    
+      return False
 
   return True
-  
+
 """
 This is the entry point in to our build system
 """
@@ -272,11 +273,11 @@ system_info = SystemInfo()
 if not start_build_system():
   system_info.reset_original_path()
   exit(1)
-  
+
 exit_code = 0
 if not start():
   exit_code = 1
-  
+
 system_info.reset_original_path()
 print "--> Finished "
-exit(exit_code)  
+exit(exit_code)

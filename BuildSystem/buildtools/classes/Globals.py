@@ -22,7 +22,7 @@ allowed_build_targets_ = [ "debug", "release", "documentation", "thirdparty", "t
                            "test", "archive", "all", "clean", "cleanall", "help",
                            "check", "modelrunner", "installer", "deb", "library", "frontend" ,"rlibrary"]
 allowed_build_types_ = [ "debug", "release", "test" ]
-allowed_build_parameters_ = [ "", "adolc", "betadiff", "cppad" ]
+allowed_build_parameters_ = [ "", "adolc", "betadiff", "cppad", "stan"]
 allowed_library_parameters_ = [ "release", "test", "adolc", "betadiff", "cppad" ]
 
 def PrintError(error_message):

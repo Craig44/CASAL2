@@ -643,6 +643,7 @@
 #define PARAM_UNIFORM                             "uniform"
 #define PARAM_UNIFORM_LOG                         "uniform_log"
 #define PARAM_UPPER_BOUND                         "upper_bound"
+#define PARAM_UNCONSTRAINED                       "unconstrained"
 #define PARAM_USER_DEFINED                        "user_defined"
 #define PARAM_V                                   "v"
 #define PARAM_VECTOR_AVERAGE                      "vector_average"
