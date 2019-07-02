@@ -11,6 +11,8 @@
  *
  * This minimiser is borrowed from the Stan C++ library
  */
+#ifdef USE_AUTODIFF
+#ifdef USE_STAN
 #ifndef MINIMISERS_STAN_BFGS_H_
 #define MINIMISERS_STAN_BFGS_H_
 
@@ -41,11 +43,13 @@ private:
   // Members
   int                         max_iterations_;
   int                         max_evaluations_;
-  double                      gradient_tolerance_;
-  double                      step_size_;
+  Double                      gradient_tolerance_;
+  Double                      step_size_;
 };
 
 } /* namespace minimisers */
 } /* namespace niwa */
 
 #endif /* MINIMISERS_STAN_BFGS_H_ */
+#endif /* USE_STAN */
+#endif /* USE_AUTODIFF */

@@ -55,6 +55,8 @@ private:
   Parser<adouble, adub, const badouble&>* parser_ = nullptr;
 #elif USE_CPPAD
   Parser<CppAD::AD<double>, CppAD::AD<double>, const CppAD::AD<double>&>* parser_ = nullptr;
+#elif USE_STAN
+  Parser<stan::math::var, stan::math::var, const stan::math::var&>* parser_ = nullptr;
 #else
   Parser<Double, Double, Double>* parser_ = nullptr;
 #endif

@@ -46,6 +46,8 @@ ELSEIF(STAN)
  SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -I${CMAKE_HOME_DIRECTORY}/bin/${buildOS}/thirdparty/include/stan_math/lib/boost_1.66.0")
  SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -I${CMAKE_HOME_DIRECTORY}/bin/${buildOS}/thirdparty/include/stan_math/lib/eigen_3.3.3")
  SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -I${CMAKE_HOME_DIRECTORY}/bin/${buildOS}/thirdparty/include/stan_math/lib/sundials_3.1.0/include")
+ #SET(COMPILE_OPTIONS "-fno-keep-inline-dllexport") # try and help with error with size of exe (didn't work)
+
 
 ELSEIF(BETADIFF)
  SET(COMPILE_OPTIONS "${COMPILE_OPTIONS} -DUSE_AUTODIFF -DUSE_BETADIFF")

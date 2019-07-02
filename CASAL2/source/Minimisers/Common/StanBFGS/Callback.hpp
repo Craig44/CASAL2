@@ -21,12 +21,10 @@
 #include "ObjectiveFunction/ObjectiveFunction.h"
 #include "EstimateTransformations/Manager.h"
 
-#include <stan/model/model_header.hpp>
-#include <stan/io/empty_var_context.hpp>
-
 // namespaces
 namespace niwa {
 namespace minimisers {
+namespace stanbfgs {
 
 using std::vector;
 using stan::io::dump;
@@ -37,7 +35,7 @@ using namespace stan::math;
  */
 class CallBack {
 public:
-  CallBack(Model* model, size_t number_of_pars) : model_(model), num_params_r__(number_of_pars) {
+  CallBack(Model* model, size_t number_of_pars) : num_params_r__(number_of_pars), model_(model) {
 
   }
   virtual                     ~CallBack() = default;
@@ -84,7 +82,6 @@ public:
     std::vector<int> vec_params_i;
     return log_prob<propto,jacobian,T_>(vec_params_r, vec_params_i, pstream);
   }
-  double                        test(double val) const;
   //template <bool propto, bool jacobian, typename T_>
   //T_                        log_prob(Eigen::Matrix<T_,Eigen::Dynamic,1>& params_r, std::ostream* pstream) const;
   void                      transform_inits(const stan::io::var_context& context__, std::vector<int>& params_i__, std::vector<double>& params_r__, std::ostream* pstream__) const {
@@ -140,5 +137,6 @@ private:
 
 } /* namespace stanbfgs */
 } /* namespace minimiser */
+}
 
 #endif /* MINIMISERS_STAN_BFGS_CALLBACK_H_ */

@@ -50,6 +50,7 @@ adub tanh(const badouble&);
 
 
 #ifdef USE_STAN
+#pragma once
 #include <stan/model/model_header.hpp>
 #include <stan/math.hpp>
 #endif

@@ -65,21 +65,27 @@ EquationParser::EquationParser(Model* model) : model_(model) {
 #elif USE_CPPAD
   parser_ = new Parser<CppAD::AD<double>, CppAD::AD<double>, const CppAD::AD<double>&>(this);
 
-  parser_->AddOneArgumentFunction("abs", CppAD::abs);
-  parser_->AddOneArgumentFunction("acos", CppAD::acos);
-  parser_->AddOneArgumentFunction("asin", CppAD::asin);
-  parser_->AddOneArgumentFunction("atan", CppAD::atan);
-  parser_->AddOneArgumentFunction("cos", CppAD::cos);
-  parser_->AddOneArgumentFunction("cosh", CppAD::cosh);
-  parser_->AddOneArgumentFunction("exp", CppAD::exp);
-  parser_->AddOneArgumentFunction("fabs", CppAD::fabs);
-  parser_->AddOneArgumentFunction("log", CppAD::log);
-  parser_->AddOneArgumentFunction("log10", CppAD::log10);
-  parser_->AddOneArgumentFunction("sin", CppAD::sin);
-  parser_->AddOneArgumentFunction("sinh", CppAD::sinh);
-  parser_->AddOneArgumentFunction("sqrt", CppAD::sqrt);
-  parser_->AddOneArgumentFunction("tan", CppAD::tan);
-  parser_->AddOneArgumentFunction("tanh", CppAD::tanh);
+
+
+#elif USE_STAN
+  parser_ = new Parser<stan::math::var, stan::math::var, const stan::math::var&>(this);
+
+//  parser_->AddOneArgumentFunction("abs", fabs);
+//  parser_->AddOneArgumentFunction("acos", acos);
+//  parser_->AddOneArgumentFunction("asin", asin);
+//  parser_->AddOneArgumentFunction("atan", atan);
+//  parser_->AddOneArgumentFunction("ceil", ceil);
+//  parser_->AddOneArgumentFunction("cos", cos);
+//  parser_->AddOneArgumentFunction("cosh", cosh);
+//  parser_->AddOneArgumentFunction("exp", exp);
+//  parser_->AddOneArgumentFunction("floor", floor);
+//  parser_->AddOneArgumentFunction("log", log);
+//  parser_->AddOneArgumentFunction("log10", log10);
+//  parser_->AddOneArgumentFunction("sin", sin);
+//  parser_->AddOneArgumentFunction("sinh", sinh);
+//  parser_->AddOneArgumentFunction("sqrt", sqrt);
+//  parser_->AddOneArgumentFunction("tan", tan);
+//  parser_->AddOneArgumentFunction("tanh", tanh);
 
 #else
   parser_ = new Parser<Double, Double, Double>(this);

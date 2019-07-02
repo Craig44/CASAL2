@@ -7,6 +7,8 @@
  *
  *
  */
+#ifdef USE_AUTODIFF
+#ifdef USE_STAN
 // Local Headers
 #include <Minimisers/Common/StanBFGS.h>
 #include <Minimisers/Common/StanBFGS/Callback.hpp>
@@ -19,16 +21,10 @@
 #include "GlobalConfiguration/GlobalConfiguration.h"
 
 // Stan headers
-#include <stan/model/model_header.hpp>
-#include <stan/model/finite_diff_grad.hpp>
+//#include <stan/model/model_header.hpp>
+#pragma once
 #include <stan/optimization/bfgs.hpp>
-#include <stan/io/empty_var_context.hpp>
-#include <stan/math.hpp>
-
-//#include <test/unit/services/instrumented_callbacks.hpp>
-#include <stan/callbacks/interrupt.hpp>
-#include <stan/callbacks/logger.hpp>
-#include <stan/callbacks/writer.hpp>//
+//#include <stan/math.hpp>
 
 
 // namespaces
@@ -56,7 +52,7 @@ void StanBFGS::Execute() {
   unsigned random_seed = model_->global_configuration().random_seed();
   LOG_MEDIUM() << "random seed = " << random_seed;
   estimates::Manager* estimate_manager = model_->managers().estimate();
-  CallBack  cas_call_back(model_, estimate_manager->GetIsEstimatedCount());
+  stanbfgs::CallBack  cas_call_back(model_, estimate_manager->GetIsEstimatedCount());
   LOG_MEDIUM() << "build Stan Call back";
 
   LOG_MEDIUM() << "log normal(1 | 2, 3)=" << stan::math::normal_log(1, 2, 3);
@@ -65,10 +61,10 @@ void StanBFGS::Execute() {
 
   LOG_MEDIUM() << "callback model_name = " << cas_call_back.model_name();
 
-  std::vector<double>  start_values;
+  std::vector<Double>  start_values;
 
   std::vector<int> params_i;
-  std::vector<double> gradient;
+  std::vector<Double> gradient;
   std::ostream* msgs = 0;
   // Transform to unconstrained space
   model_->managers().estimate_transformation()->TransformEstimates();
@@ -76,11 +72,11 @@ void StanBFGS::Execute() {
   for (Estimate* estimate : estimates) {
     if (!estimate->estimated())
       continue;
-    start_values.push_back((double)estimate->value());
+    start_values.push_back(estimate->value());
     LOG_MEDIUM() << "value = " << estimate->value();
   }
 
-  double log_p = cas_call_back.log_prob<false, true, double>(start_values, params_i, msgs);
+  Double log_p = cas_call_back.log_prob<false, true, Double>(start_values, params_i, msgs);
   LOG_MEDIUM() << "log_p = " << log_p;
 
   /*
@@ -96,15 +92,15 @@ void StanBFGS::Execute() {
     LOG_MEDIUM() << start_values[i];
 
   // This is the log_prob_grad function
-  vector<stan::math::var> ad_params_r(start_values.size());
+  vector<Double> ad_params_r(start_values.size());
   for (size_t i = 0; i < cas_call_back.num_params_r(); ++i) {
-    stan::math::var var_i(start_values[i]);
+    Double var_i(start_values[i]);
     ad_params_r[i] = var_i;
   }
-  stan::math::var adLogProb = cas_call_back.template log_prob<true, false>(ad_params_r, params_i, msgs);
+  Double adLogProb = cas_call_back.template log_prob<true, false>(ad_params_r, params_i, msgs);
 
   double lp = adLogProb.val();
-  adLogProb.grad(ad_params_r, gradient);
+  //adLogProb.grad(ad_params_r, gradient);
   LOG_MEDIUM() << "lp = " << lp;
 
   for (unsigned i = 0; i < gradient.size(); ++i) {
@@ -112,8 +108,17 @@ void StanBFGS::Execute() {
   }
 
 
+  // test gradient
+  vector<double> starting_vals_for_grad;
+  for (Estimate* estimate : estimates) {
+    if (!estimate->estimated())
+      continue;
+    double this_val = AS_DOUBLE(estimate->value());
+    starting_vals_for_grad.push_back(this_val);
+  }
+  vector<double> gradients_grad(starting_vals_for_grad.size(),0.0);
 
-  double log_p_grad = stan::model::log_prob_grad<true, false, CallBack>(cas_call_back, start_values, params_i,gradient, msgs);
+  double log_p_grad = stan::model::log_prob_grad<true, false, stanbfgs::CallBack>(cas_call_back, starting_vals_for_grad, params_i, gradients_grad, msgs);
   LOG_MEDIUM() << "log_p_grad = " << log_p_grad;
 
   for (unsigned i = 0; i < gradient.size(); ++i) {
@@ -125,9 +130,15 @@ void StanBFGS::Execute() {
     LOG_MEDIUM() << "gradient was not calculated properly = " << stan::math::sum(gradient);
 
   //-------------- Try an optimisation
-
+  vector<double> starting_vals_for_optim;
+  for (Estimate* estimate : estimates) {
+    if (!estimate->estimated())
+      continue;
+    double this_val = AS_DOUBLE(estimate->value());
+    starting_vals_for_optim.push_back(this_val);
+  }
   std::stringstream out;
-  stan::optimization::BFGSLineSearch<CallBack,stan::optimization::LBFGSUpdate<> > lbfgs(cas_call_back, start_values, params_i, &out);
+  stan::optimization::BFGSLineSearch<stanbfgs::CallBack,stan::optimization::LBFGSUpdate<> > lbfgs(cas_call_back, starting_vals_for_optim, params_i, &out);
   lbfgs._conv_opts.tolRelGrad =  1e+7;
 
   LOG_MEDIUM() << "about to check step()\n\n";
@@ -158,3 +169,5 @@ void StanBFGS::Execute() {
 
 } /* namespace minimisers */
 } /* namespace niwa */
+#endif /* USE_STAN */
+#endif /* USE_AUTODIFF */

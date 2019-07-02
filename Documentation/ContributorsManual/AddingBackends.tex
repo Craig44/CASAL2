@@ -1,0 +1,26 @@
+\section{Adding Back ends\label{sec:Introduction}}
+This is Craig Marsh's rambles/documentation from learning/trying to import Stan into \CNAME, and will be hopefully be helpful to others later down the track. This will also help users understand the autodiff implementation of \CNAME\ which is still a bit of a mystery to me. So Stan has two repos that I have been playing around with the math library \url{https://github.com/stan-dev/math} and the stan bayesian repo which depends on the math library but holds all the algorithms for NUTs and fancy MCMC algorithms that I would love to access \url{https://github.com/stan-dev/stan}. A helpful thread that I have been keeping an eye on is \href{https://discourse.mc-stan.org/t/use-stan-easily-from-c/2900/11}{here}
+
+
+So the first thing you want to know when implementing an auto differential tool is what is the base class that is used to generate gradients for parameters. In Stans case it is the \texttt{var} (for variable) class (\href{https://github.com/stan-dev/math/blob/develop/stan/math/rev/core/var.hpp}{found here}). The important thing to know in \CNAME\ for must floar or doubles we declare \texttt{Double} this is because for most of these autodiff classes they work on classes. This can be seen in the \texttt{Types.h} file (\href{https://github.com/NIWAFisheriesModelling/CASAL2/blob/master/CASAL2/source/Utilities/Types.h}{found here}). Where there is \texttt{typedef} statement that declares what a \texttt{Double} is when using autodiff and specific minimisers. 
+
+
+Issues, when linking in Stan is that we multiple boost libraries appear (stan = boost\_1.66.0, whereas I think we rock boost\_1.58.0), so would be good to address that (I think an easy fix as long as the correct versions are used), just link to one.
+
+\subsection{Stan specific functions}
+\textbf{You need to read this if you want to implement Stan} \url{https://arxiv.org/pdf/1509.07164.pdf}
+\subsection{\texttt{var} class}
+looking at the \texttt{var} class (\href{https://github.com/stan-dev/math/blob/develop/stan/math/rev/core/var.hpp}{found here}) creates the base class \texttt{vari} which is responsible for creating the stack that which is used for the chain rule \href{https://github.com/stan-dev/math/blob/develop/stan/math/rev/core/vari.hpp}{found here} . This class is responsible for calculating gradients conditional on other variable values. This class has a public method \texttt{grad()}, which "computes the gradient of this (dependent) variable with respect to the specified vector of (independent) variables, assigning the specified vector to the gradient.". This is done by calling the \texttt{grad()} function in the stan math library (\href{https://github.com/stan-dev/math/blob/develop/stan/math/rev/core/grad.hpp}{found here}) which implements the chain rule working down the stack. That all seems fine, how does this interact with say \texttt{log\_grad\_prob()} function.
+
+\subsection{\texttt{log\_grad\_prob()} function}
+This function computes the gradient using reverse-mode automatic differentiation, writing the result into the specified gradient and is \href{https://github.com/stan-dev/stan/blob/develop/src/stan/model/log_prob_grad.hpp}{found here}. This function takes a model, which is the Callback class for \CNAME\ and given a vector of \texttt{doubles} returns the gradient. How this is done is when it's passed a vector of doubles it generates a \texttt{var} class for each one and then given the operations that happen to these variables returns the gradient using methods discussed in the above section.
+
+
+\subsection{Addressing current \CNAME\ concerns}
+I was looking at the original CASAL code and in the \CNAME\ Thirdparty Betadiff \texttt{betadiff.h} I found this message.
+
+-Betadiff can run out of memory. If this happens, it writes out the contents of memory to several large files prefixed \_adol\_ in the current working directory. This is a bad thing because it is very slow: it also will cause problems if multiple processes are running in the same directory because they will each try and use the same filenames. However, this problem is avoidable. In my experience, it only happens when you create many active variables using 'new' and fail to destroy them using 'delete': a stack within ADOL-C then just keeps getting larger and larger. So, make sure to delete anything you create. If you want to check whether the ADOL-C stack is getting out of hand, look at the standard error for messages like "resizing from 10000 to 11000". These indicate the current size of the stack of active variables. The stack should grow a lot at the start of a minimisation, but should stop growing after the first 1 or 2 differentiations. If it keeps growing, then you are probably failing to delete something.
+
+
+
+
