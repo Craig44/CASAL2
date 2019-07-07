@@ -23,6 +23,7 @@
 #include "Observations/Age/TagRecaptureByAge.h"
 #include "Observations/Age/TagRecaptureByLength.h"
 #include "Observations/Age/Abundance/Process.h"
+#include "Observations/Age/LeastSquares.h"
 #include "Observations/Age/Abundance/TimeStep.h"
 #include "Observations/Age/Biomass/Process.h"
 #include "Observations/Age/Biomass/TimeStep.h"
@@ -57,6 +58,8 @@ Observation* Factory::Create(Model* model, const string& object_type, const stri
         result = new age::ProcessAbundance(model);
       else if (sub_type == PARAM_BIOMASS)
         result = new age::TimeStepBiomass(model);
+      else if (sub_type == PARAM_LEAST_SQUARES)
+        result = new age::LeastSquares(model);
       else if (sub_type == PARAM_PROCESS_BIOMASS)
         result = new age::ProcessBiomass(model);
       else if (sub_type == PARAM_PROPORTIONS_AT_AGE)
