@@ -97,8 +97,14 @@ void ProportionsAtAge::DoValidate() {
     if (process_error < 0.0)
       LOG_ERROR_P(PARAM_PROCESS_ERRORS) << ": process_error (" << AS_DOUBLE(process_error) << ") cannot be less than 0.0";
   }
-  if (process_error_values_.size() != 0)
+  if (process_error_values_.size() != 0) {
     process_errors_by_year_ = utilities::Map::create(years_, process_error_values_);
+  } else {
+    Double process_val = 0.0;
+    process_errors_by_year_ = utilities::Map::create(years_, process_val);
+  }
+
+
   if (delta_ < 0.0)
     LOG_ERROR_P(PARAM_DELTA) << ": delta (" << AS_DOUBLE(delta_) << ") cannot be less than 0.0";
 
@@ -415,8 +421,10 @@ void ProportionsAtAge::CalculateScore() {
           comparison.expected_  = 0.0;
       }
     }
+    LOG_FINE() << "about to calculate score through likleihood";
     likelihood_->GetScores(comparisons_);
     for (unsigned year : years_) {
+      LOG_FINE() << "get initial score in year = " << year;
       scores_[year] = likelihood_->GetInitialScore(comparisons_, year);
       LOG_FINEST() << "-- Observation score calculation " << label_;
       LOG_FINEST() << "[" << year << "] Initial Score:"<< scores_[year];

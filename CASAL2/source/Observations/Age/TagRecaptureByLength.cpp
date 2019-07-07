@@ -111,6 +111,22 @@ void TagRecaptureByLength::DoValidate() {
   map<unsigned, vector<Double>> recaptures_by_year;
   map<unsigned, vector<Double>> scanned_by_year;
 
+  if (process_error_values_.size() != 0 && process_error_values_.size() != years_.size()) {
+    LOG_ERROR_P(PARAM_PROCESS_ERRORS) << " number of values provided (" << process_error_values_.size() << ") does not match the number of years provided ("
+        << years_.size() << ")";
+  }
+  for (Double process_error : process_error_values_) {
+    if (process_error < 0.0)
+      LOG_ERROR_P(PARAM_PROCESS_ERRORS) << ": process_error (" << AS_DOUBLE(process_error) << ") cannot be less than 0.0";
+  }
+  if (process_error_values_.size() != 0) {
+    process_errors_by_year_ = utilities::Map::create(years_, process_error_values_);
+  } else {
+    Double process_val = 0.0;
+    process_errors_by_year_ = utilities::Map::create(years_, process_val);
+  }
+
+
   if (detection_ < 0.0 || detection_ > 1.0) {
     LOG_ERROR_P(PARAM_DETECTION_PARAMETER) << ": detection probability must be between 0 and 1";
   }
