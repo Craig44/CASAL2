@@ -60,6 +60,8 @@ void AgeLength::Validate() {
   LOG_FINEST() << "by_length_ = " << by_length_;
   parameters_.Populate(model_);
 
+  // TODO add a check that says if you specify a distribution they have specified a value for
+  // CV - otherwise the distribution is pointless
   if (distribution_label_ == PARAM_NORMAL)
     distribution_ = Distribution::kNormal;
   else if (distribution_label_ == PARAM_LOGNORMAL)
@@ -101,7 +103,14 @@ void AgeLength::Build() {
 void AgeLength::BuildCV() {
   unsigned min_age = model_->min_age();
   unsigned max_age = model_->max_age();
-  vector<unsigned> years = model_->years();
+  vector<unsigned> years(model_->years().size() + 1,0);
+  unsigned year_ndx = 1;
+  for (unsigned year : model_->years()) {
+    years[year_ndx] = year;
+    ++year_ndx;
+  }
+
+
   vector<string> time_steps = model_->time_steps();
   LOG_FINE() << "number of time steps " << time_steps.size();
 
@@ -109,15 +118,19 @@ void AgeLength::BuildCV() {
     for (unsigned step_iter = 0; step_iter < time_steps.size(); ++step_iter) {
       if (!parameters_.Get(PARAM_CV_LAST)->has_been_defined()) { // TODO: Fix this #this test is robust but not compatible with testing framework, blah
         //If cv_last_ is not defined in the input then assume cv_first_ represents the cv for all age classes i.e constant cv
-        for (unsigned age = min_age; age <= max_age; ++age)
-          cvs_[year][step_iter][age] = (cv_first_);
+        for (unsigned age = min_age; age <= max_age; ++age) {
+          //LOG_FINEST() << "year = " << year << " step iter = " << step_iter << " age = " << age << " = " << cv_first_;
+          cvs_[year][step_iter][age] = cv_first_;
+        }
 
       } else if (by_length_) {  // if passed the first test we have a min and max CV. So ask if this is linear interpolated by length at age
+        //LOG_FINE() << "By length = ";
         for (unsigned age = min_age; age <= max_age; ++age) {
           cvs_[year][step_iter][age] = ((this->mean_length(step_iter, age) - this->mean_length(step_iter, min_age)) * (cv_last_ - cv_first_)
               / (this->mean_length(step_iter, max_age) - this->mean_length(step_iter, min_age)) + cv_first_);
         }
       } else {
+        //LOG_FINE() << "By age";
         // else Do linear interpolation between cv_first_ and cv_last_ based on age class
         for (unsigned age = min_age; age <= max_age; ++age)
           cvs_[year][step_iter][age] = (cv_first_ + (cv_last_ - cv_first_) * (age - min_age) / (max_age - min_age));
