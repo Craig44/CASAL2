@@ -16,7 +16,6 @@
 #include "Model/Model.h"
 #include "Model/Managers.h"
 #include "Minimisers/Manager.h"
-#include "Minimisers/Common/StanBFGS.h"
 
 #ifdef USE_AUTODIFF
 #ifdef USE_ADOLC
@@ -25,6 +24,8 @@
 #include "Minimisers/Common/BetaDiff.h"
 #elif defined(USE_CPPAD)
 #include "Minimisers/Common/CPPAD.h"
+#elif defined(USE_STAN)
+#include "Minimisers/Common/StanBFGS.h"
 #endif
 #endif
 
@@ -54,10 +55,6 @@ Minimiser* Factory::Create(Model* model, const string& object_type, const string
 
   if (object_type == PARAM_MINIMIZER) {
 
-    if (sub_type == PARAM_STAN_BFGS) {
-      result = new StanBFGS(model);
-    }
-
 #ifdef USE_AUTODIFF
 #ifdef USE_BETADIFF
     if (sub_type == PARAM_BETADIFF) {
@@ -70,6 +67,10 @@ Minimiser* Factory::Create(Model* model, const string& object_type, const string
 #elif defined(USE_CPPAD)
     if (sub_type == PARAM_CPPAD) {
       result = new CPPAD(model);
+    }
+#elif defined(USE_STAN)
+    if (sub_type == PARAM_STAN_BFGS) {
+      result = new StanBFGS(model);
     }
 #endif
     else if (sub_type == PARAM_DE_SOLVER || sub_type == PARAM_DLIB || sub_type == PARAM_GAMMADIFF)

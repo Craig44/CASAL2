@@ -12,8 +12,10 @@
  *
  * Implement a call back that Stan minimiser can call back with.
  */
-#ifndef MINIMISERS_STAN_BFGS_CALLBACK_H_
-#define MINIMISERS_STAN_BFGS_CALLBACK_H_
+
+#ifdef USE_AUTODIFF
+#ifdef USE_STAN
+
 // Headers
 
 #include "Model/Model.h"
@@ -49,32 +51,25 @@ public:
     if (params_r__.size() != estimates.size()) {
       LOG_CODE_ERROR() << "The number of enabled estimates does not match the number of test solution values";
     }
-    double val = 0.0;
     for (unsigned i = 0; i < params_r__.size(); ++i) {
-      val = stan::math::value_of(params_r__[i]);
-      LOG_MEDIUM() << "setting value to = " << val;
-      estimates[i]->set_value(val); // the grad function has params_r__ as a vector of stan::math::var objects.
+      LOG_MEDIUM() << "trialling values " << params_r__[i];
+      estimates[i]->set_value(params_r__[i]); // the grad function has params_r__ as a vector of stan::math::var objects.
     }
+
 
     model_->managers().estimate_transformation()->RestoreEstimates();
     model_->FullIteration();
 
-
-
     ObjectiveFunction& objective = model_->objective_function();
     objective.CalculateScore();
 
-    //model_->managers().estimate_transformation()->TransformEstimates();
-    lp_accum__.add(-objective.score());// Casal2 works with Negative log-likelihood Stan works with log-likelihood space
-
-
-    return lp_accum__.sum();
-
-
+    LOG_MEDIUM() << "ll = " <<  objective.score();
+    return objective.score();
   }
 
   template <bool propto, bool jacobian, typename T_>
-  T_                        log_prob(Eigen::Matrix<T_,Eigen::Dynamic,1>& params_r, std::ostream* pstream = 0) const {
+  T_ log_prob(Eigen::Matrix<T_,Eigen::Dynamic,1>& params_r,
+         std::ostream* pstream = 0) const {
     std::vector<T_> vec_params_r;
     vec_params_r.reserve(params_r.size());
     for (int i = 0; i < params_r.size(); ++i)
@@ -82,6 +77,7 @@ public:
     std::vector<int> vec_params_i;
     return log_prob<propto,jacobian,T_>(vec_params_r, vec_params_i, pstream);
   }
+
   //template <bool propto, bool jacobian, typename T_>
   //T_                        log_prob(Eigen::Matrix<T_,Eigen::Dynamic,1>& params_r, std::ostream* pstream) const;
   void                      transform_inits(const stan::io::var_context& context__, std::vector<int>& params_i__, std::vector<double>& params_r__, std::ostream* pstream__) const {
@@ -139,4 +135,5 @@ private:
 } /* namespace minimiser */
 }
 
-#endif /* MINIMISERS_STAN_BFGS_CALLBACK_H_ */
+#endif /* USE_STAN */
+#endif /* USE_AUTODIFF */

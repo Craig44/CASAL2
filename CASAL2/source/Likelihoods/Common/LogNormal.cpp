@@ -52,7 +52,7 @@ void LogNormal::GetScores(map<unsigned, vector<observations::Comparison> >& comp
       Double final_score = log(sigma) + 0.5 * (score * score);
 
       comparison.adjusted_error_ = error_value;
-      comparison.score_ = final_score * multiplier_;
+      comparison.score_ = final_score * multiplier_ * -1.0;;
     }
   }
 }

@@ -22,8 +22,8 @@
 
 // Stan headers
 //#include <stan/model/model_header.hpp>
-#pragma once
 #include <stan/optimization/bfgs.hpp>
+
 //#include <stan/math.hpp>
 
 
@@ -47,13 +47,18 @@ StanBFGS::StanBFGS(Model* model) : Minimiser(model) {
  */
 void StanBFGS::Execute() {
   LOG_MEDIUM();
+
+  // Transform to unconstrained space
+  estimates::Manager* estimate_manager = model_->managers().estimate();
+
+  model_->managers().estimate_transformation()->TransformEstimates();
+  vector<Estimate*> estimates = estimate_manager->GetIsEstimated();
   // Variables
   // stan::io::empty_var_context context;
   unsigned random_seed = model_->global_configuration().random_seed();
   LOG_MEDIUM() << "random seed = " << random_seed;
-  estimates::Manager* estimate_manager = model_->managers().estimate();
   stanbfgs::CallBack  cas_call_back(model_, estimate_manager->GetIsEstimatedCount());
-  LOG_MEDIUM() << "build Stan Call back";
+  LOG_MEDIUM() << "build Stan Call back, num params = " << estimate_manager->GetIsEstimatedCount();
 
   LOG_MEDIUM() << "log normal(1 | 2, 3)=" << stan::math::normal_log(1, 2, 3);
   // This confirms we have access to Stan functionality
@@ -62,13 +67,36 @@ void StanBFGS::Execute() {
   LOG_MEDIUM() << "callback model_name = " << cas_call_back.model_name();
 
   std::vector<Double>  start_values;
-
   std::vector<int> params_i;
   std::vector<Double> gradient;
   std::ostream* msgs = 0;
-  // Transform to unconstrained space
-  model_->managers().estimate_transformation()->TransformEstimates();
-  vector<Estimate*> estimates = estimate_manager->GetIsEstimated();
+
+/*
+
+  vector<Double> actual_vals = {2.07018, 2.33322 };
+  unsigned iter = 0;
+  for (Estimate* estimate : estimates) {
+    if (!estimate->estimated())
+      continue;
+    estimate->set_value(actual_vals[iter]);
+    ++iter;
+  }
+  model_->FullIteration();
+  ObjectiveFunction& objective = model_->objective_function();
+  objective.CalculateScore();
+  Double ll = objective.score(); // endpoint in the stack = dependent variable (function value)
+  ll.grad();
+  stan::math::print_stack(std::cerr);
+
+  LOG_MEDIUM() << "ll = " << ll.val();
+  for (Estimate* estimate : estimates) {
+    if (!estimate->estimated())
+      continue;
+    LOG_MEDIUM() << estimate->value().val();
+    LOG_MEDIUM() << estimate->value().adj();
+  }
+*/
+
   for (Estimate* estimate : estimates) {
     if (!estimate->estimated())
       continue;
@@ -79,13 +107,28 @@ void StanBFGS::Execute() {
   Double log_p = cas_call_back.log_prob<false, true, Double>(start_values, params_i, msgs);
   LOG_MEDIUM() << "log_p = " << log_p;
 
-  /*
-  double test_val = 324.2;
-  double log_p = cas_call_back.test(test_val);
+  vector<double> test_grad(start_values.size(),0.0);
+  log_p.grad(start_values, test_grad);
 
-  LOG_FINE() << "log_p = " << log_p;
-   */
 
+  for (unsigned i = 0; i < start_values.size(); ++i) {
+    LOG_MEDIUM() << "val = " << start_values[i].val();
+    LOG_MEDIUM() << "adj = " << start_values[i].adj();
+    LOG_MEDIUM() << "grad = " << test_grad[i];
+  }
+  LOG_MEDIUM() << "clear memory";
+  stan::math::recover_memory();
+  LOG_MEDIUM() << "try again";
+  log_p = cas_call_back.log_prob<false, true, Double>(start_values, params_i, msgs);
+  LOG_MEDIUM() << "complete";
+
+
+  for (unsigned i = 0; i < start_values.size(); ++i) {
+    LOG_MEDIUM() << "val = " << start_values[i].val();
+    LOG_MEDIUM() << "adj = " << start_values[i].adj();
+    LOG_MEDIUM() << "grad = " << test_grad[i];
+  }
+  //stan::math::print_stack(std::cerr);
   // Calculate gradient
   LOG_MEDIUM() << "before calling log_prob_grad check starting values";
   for(unsigned i = 0; i < start_values.size(); ++i)
@@ -97,18 +140,10 @@ void StanBFGS::Execute() {
     Double var_i(start_values[i]);
     ad_params_r[i] = var_i;
   }
-  Double adLogProb = cas_call_back.template log_prob<true, false>(ad_params_r, params_i, msgs);
-
-  double lp = adLogProb.val();
-  //adLogProb.grad(ad_params_r, gradient);
-  LOG_MEDIUM() << "lp = " << lp;
-
-  for (unsigned i = 0; i < gradient.size(); ++i) {
-    LOG_MEDIUM() << "val = " << start_values[i] << " grad = " << gradient[i];
-  }
 
 
   // test gradient
+  model_->managers().estimate_transformation()->TransformEstimates();
   vector<double> starting_vals_for_grad;
   for (Estimate* estimate : estimates) {
     if (!estimate->estimated())
@@ -118,30 +153,54 @@ void StanBFGS::Execute() {
   }
   vector<double> gradients_grad(starting_vals_for_grad.size(),0.0);
 
+  LOG_MEDIUM() << "About to calc gradient";
   double log_p_grad = stan::model::log_prob_grad<true, false, stanbfgs::CallBack>(cas_call_back, starting_vals_for_grad, params_i, gradients_grad, msgs);
   LOG_MEDIUM() << "log_p_grad = " << log_p_grad;
 
-  for (unsigned i = 0; i < gradient.size(); ++i) {
-    LOG_MEDIUM() << "val = " << start_values[i] << " grad = " << gradient[i];
+
+  for (unsigned i = 0; i < gradients_grad.size(); ++i) {
+    LOG_MEDIUM() << "val = " << starting_vals_for_grad[i] << " grad = " << gradients_grad[i];
   }
 
-  bool gradient_ok = boost::math::isfinite(stan::math::sum(gradient));
+  bool gradient_ok = boost::math::isfinite(stan::math::sum(gradients_grad));
   if (!gradient_ok)
-    LOG_MEDIUM() << "gradient was not calculated properly = " << stan::math::sum(gradient);
+    LOG_MEDIUM() << "gradient was not calculated properly = " << stan::math::sum(gradients_grad);
 
+  LOG_MEDIUM() << "about to enter estimation, fingers crossed";
   //-------------- Try an optimisation
+  Eigen::Matrix<double, Eigen:: Dynamic, 1> vals_for_adaptor_;
+  vals_for_adaptor_.resize(starting_vals_for_grad.size());
   vector<double> starting_vals_for_optim;
+  unsigned i = 0;
   for (Estimate* estimate : estimates) {
     if (!estimate->estimated())
       continue;
     double this_val = AS_DOUBLE(estimate->value());
+    vals_for_adaptor_(i) = this_val;
     starting_vals_for_optim.push_back(this_val);
+    ++i;
   }
   std::stringstream out;
+
+  LOG_MEDIUM() << "about to build model adaptor \n";
+  stan::optimization::ModelAdaptor<stanbfgs::CallBack> _adaptor(cas_call_back, params_i, &out);
+  LOG_MEDIUM() << "Build model adaptor \n";
+  Eigen::Matrix<double, Eigen:: Dynamic, 1> gradient_for_adaptor_;
+  double f;
+
+  _adaptor(vals_for_adaptor_,f);
+
+  LOG_MEDIUM() << "f = " << f;
+
+  //int result = _adaptor();
+  //LOG_MEDIUM() << result <<  "test () operator \n";
+
+
   stan::optimization::BFGSLineSearch<stanbfgs::CallBack,stan::optimization::LBFGSUpdate<> > lbfgs(cas_call_back, starting_vals_for_optim, params_i, &out);
+  LOG_MEDIUM() << "Successfully built lfbgs \n\n";
+
   lbfgs._conv_opts.tolRelGrad =  1e+7;
 
-  LOG_MEDIUM() << "about to check step()\n\n";
   int ret = 0;
   while (ret == 0) {
     ret = lbfgs.step();
@@ -160,6 +219,7 @@ void StanBFGS::Execute() {
   for (unsigned i = 0; i < current_f.size(); ++i) {
     LOG_MEDIUM()<< current_f[i] << " ";
   }
+
 
 
   LOG_MEDIUM() << "Finished DoExecute";

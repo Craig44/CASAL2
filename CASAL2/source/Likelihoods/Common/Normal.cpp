@@ -50,7 +50,7 @@ void Normal::GetScores(map<unsigned, vector<observations::Comparison> >& compari
       Double sigma = error_value * comparison.expected_;
       Double score = (comparison.observed_ - comparison.expected_) / dc::ZeroFun(error_value * comparison.expected_, comparison.delta_);
       score = log(sigma) + 0.5 * (score * score);
-      comparison.score_ = score * multiplier_;
+      comparison.score_ = score * -1.0;
     }
   }
 }
