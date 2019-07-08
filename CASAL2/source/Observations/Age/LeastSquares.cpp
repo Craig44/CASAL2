@@ -24,9 +24,9 @@ namespace utils = niwa::utilities;
 LeastSquares::LeastSquares(Model* model) : Observation(model) {
   parameters_.Bind<Double>(PARAM_A, &a_, "y-intercept", "");
   parameters_.Bind<Double>(PARAM_B, &b_, "slope parameter", "");
-  parameters_.Bind<Double>(PARAM_X, &covariates_, "Covariate", "");
-  parameters_.Bind<Double>(PARAM_Y, &observed_, "Observed vals", "");
-  parameters_.Bind<Double>(PARAM_SIGMA, &sigma_, "obs std", "");
+  parameters_.Bind<double>(PARAM_X, &covariates_, "Covariate", "");
+  parameters_.Bind<double>(PARAM_Y, &observed_, "Observed vals", "");
+  parameters_.Bind<double>(PARAM_SIGMA, &sigma_, "obs std", "");
   parameters_.Bind<string>(PARAM_TIME_STEP, &time_step_label_, "The label of time-step that the observation occurs in", "");
 
   RegisterAsAddressable(PARAM_A, &a_);
@@ -74,9 +74,9 @@ void LeastSquares::DoBuild() {
  *
  */
 void LeastSquares::PreExecute() {
-  LOG_MEDIUM() << "PreExecute n obs = " << observed_.size() << " n covariates = " << covariates_.size();
+/*  LOG_MEDIUM() << "PreExecute n obs = " << observed_.size() << " n covariates = " << covariates_.size();
   for (unsigned i = 0; i < observed_.size(); ++i)
-    LOG_MEDIUM() <<  "observed = " << observed_[i] << " x = " << covariates_[i];
+    LOG_MEDIUM() <<  "observed = " << observed_[i] << " x = " << covariates_[i];*/
 }
 
 
@@ -84,9 +84,9 @@ void LeastSquares::PreExecute() {
  *
  */
 void LeastSquares::DoReset() {
-  LOG_MEDIUM() << "DoReset n obs = " << observed_.size() << " n covariates = " << covariates_.size();
+/*  LOG_MEDIUM() << "DoReset n obs = " << observed_.size() << " n covariates = " << covariates_.size();
   for (unsigned i = 0; i < observed_.size(); ++i)
-    LOG_MEDIUM() <<  "observed = " << observed_[i] << " x = " << covariates_[i];
+    LOG_MEDIUM() <<  "observed = " << observed_[i] << " x = " << covariates_[i];*/
 }
 /**
  *
@@ -112,8 +112,8 @@ void LeastSquares::Execute() {
  */
 void LeastSquares::CalculateScore() {
   LOG_MEDIUM() << "CalculateScore";
-  for (unsigned i = 0; i < observed_.size(); ++i)
-    LOG_MEDIUM() <<  "observed = " << observed_[i] << " x = " << covariates_[i];
+/*  for (unsigned i = 0; i < observed_.size(); ++i)
+    LOG_MEDIUM() <<  "observed = " << observed_[i] << " x = " << covariates_[i];*/
   //LOG_MEDIUM() << "Entering CalculateScore " << label_;
   likelihood_->GetScores(comparisons_);
   //LOG_MEDIUM() << "save scores";

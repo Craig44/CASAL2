@@ -116,18 +116,15 @@ void StanBFGS::Execute() {
     LOG_MEDIUM() << "adj = " << start_values[i].adj();
     LOG_MEDIUM() << "grad = " << test_grad[i];
   }
+
+/*
   LOG_MEDIUM() << "clear memory";
-  stan::math::recover_memory();
+  stan::math::recover_memory(); // This is getting called somewhere which is fucking everything up.
   LOG_MEDIUM() << "try again";
   log_p = cas_call_back.log_prob<false, true, Double>(start_values, params_i, msgs);
-  LOG_MEDIUM() << "complete";
+  LOG_MEDIUM() << "complete";*/
 
-
-  for (unsigned i = 0; i < start_values.size(); ++i) {
-    LOG_MEDIUM() << "val = " << start_values[i].val();
-    LOG_MEDIUM() << "adj = " << start_values[i].adj();
-    LOG_MEDIUM() << "grad = " << test_grad[i];
-  }
+/*
   //stan::math::print_stack(std::cerr);
   // Calculate gradient
   LOG_MEDIUM() << "before calling log_prob_grad check starting values";
@@ -155,7 +152,6 @@ void StanBFGS::Execute() {
 
   LOG_MEDIUM() << "About to calc gradient";
   double log_p_grad = stan::model::log_prob_grad<true, false, stanbfgs::CallBack>(cas_call_back, starting_vals_for_grad, params_i, gradients_grad, msgs);
-  LOG_MEDIUM() << "log_p_grad = " << log_p_grad;
 
 
   for (unsigned i = 0; i < gradients_grad.size(); ++i) {
@@ -167,22 +163,23 @@ void StanBFGS::Execute() {
     LOG_MEDIUM() << "gradient was not calculated properly = " << stan::math::sum(gradients_grad);
 
   LOG_MEDIUM() << "about to enter estimation, fingers crossed";
+  */
   //-------------- Try an optimisation
-  Eigen::Matrix<double, Eigen:: Dynamic, 1> vals_for_adaptor_;
-  vals_for_adaptor_.resize(starting_vals_for_grad.size());
+  /*Eigen::Matrix<double, Eigen:: Dynamic, 1> vals_for_adaptor_;
+  vals_for_adaptor_.resize(starting_vals_for_grad.size());*/
   vector<double> starting_vals_for_optim;
   unsigned i = 0;
   for (Estimate* estimate : estimates) {
     if (!estimate->estimated())
       continue;
     double this_val = AS_DOUBLE(estimate->value());
-    vals_for_adaptor_(i) = this_val;
+    //vals_for_adaptor_(i) = this_val;
     starting_vals_for_optim.push_back(this_val);
     ++i;
   }
   std::stringstream out;
 
-  LOG_MEDIUM() << "about to build model adaptor \n";
+/*  LOG_MEDIUM() << "about to build model adaptor \n";
   stan::optimization::ModelAdaptor<stanbfgs::CallBack> _adaptor(cas_call_back, params_i, &out);
   LOG_MEDIUM() << "Build model adaptor \n";
   Eigen::Matrix<double, Eigen:: Dynamic, 1> gradient_for_adaptor_;
@@ -190,7 +187,7 @@ void StanBFGS::Execute() {
 
   _adaptor(vals_for_adaptor_,f);
 
-  LOG_MEDIUM() << "f = " << f;
+  LOG_MEDIUM() << "f = " << f;*/
 
   //int result = _adaptor();
   //LOG_MEDIUM() << result <<  "test () operator \n";

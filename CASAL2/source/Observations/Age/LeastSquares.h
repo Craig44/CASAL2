@@ -40,11 +40,11 @@ public:
 protected:
   // members
   vector<unsigned>                years_;
-  vector<Double>                  covariates_;
-  vector<Double>                  observed_;
+  vector<double>                  covariates_;
+  vector<double>                  observed_;
   Double                          a_;
   Double                          b_;
-  Double                          sigma_;
+  double                          sigma_;
   vector<Double>                  y_hat_;
   string                          time_step_label_ = "";
 
